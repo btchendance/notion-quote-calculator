@@ -182,17 +182,22 @@
             const key = getStorageKey();
             if (!key) return;
 
+            const projectName = document.getElementById('projectName').value.trim();
             const ratios = Array.from(document.querySelectorAll('#table1 .ratio')).map(i => i.value);
             const total1 = document.getElementById('total1').value;
             const amounts2 = Array.from(document.querySelectorAll('#table2 .amount2')).map(i => i.value);
 
             const data = {
+                projectName: projectName,  // 保存專案名稱
                 ratios: ratios,
                 total1: total1,
-                amounts2: amounts2
+                amounts2: amounts2,
+                timestamp: new Date().toISOString()
             };
 
             localStorage.setItem(key, JSON.stringify(data));
+            // 同時存儲最後使用的專案名稱
+            localStorage.setItem('lastProjectName', projectName);
         }
 
         function loadData() {
@@ -242,9 +247,19 @@
             }
             if (confirm(`確認清空「${document.getElementById('projectName').value}」的所有數據嗎？`)) {
                 localStorage.removeItem(key);
+                alert('已清空此專案數據');
                 location.reload();
             }
         }
+
+        // 頁面載入時恢復最後使用的專案名稱
+        window.addEventListener('load', () => {
+            const lastProjectName = localStorage.getItem('lastProjectName');
+            if (lastProjectName) {
+                document.getElementById('projectName').value = lastProjectName;
+                loadData();
+            }
+        });
 
         // 表格一：按比例計算金額
         function calculateTable1() {
