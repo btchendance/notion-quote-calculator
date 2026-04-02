@@ -261,6 +261,12 @@
             }
         });
 
+        // 立即恢復專案名稱（用於Notion iframe）
+        const lastProjectName = localStorage.getItem('lastProjectName');
+        if (lastProjectName) {
+            document.getElementById('projectName').value = lastProjectName;
+        }
+
         // 表格一：按比例計算金額
         function calculateTable1() {
             const total = parseFloat(document.getElementById('total1').value) || 0;
@@ -361,7 +367,11 @@
         // 初始化計算和載入數據
         calculateTable1();
         calculateTable2();
-        loadData();
+        
+        // 如果有自動恢復的專案名稱，則載入其數據
+        if (localStorage.getItem('lastProjectName')) {
+            loadData();
+        }
     </script>
 </body>
 </html>
