@@ -88,6 +88,8 @@
             </tr>
         </tbody>
     </table>
+    <div id="table1-warning" style="color: red; margin-bottom: 10px;"></div>
+    <button id="normalizeBtn" style="margin-bottom: 15px;">自動校正比例</button>
 
     <h2>計算比例</h2>
     <table id="table2">
@@ -161,6 +163,7 @@
             </tr>
         </tbody>
     </table>
+    <div id="table2-info" style="color: green; margin-bottom: 10px;"></div>
 
     <script>
         // 表格一：按比例計算金額
@@ -173,6 +176,32 @@
                 const amount = (total * ratio) / 100;
                 amounts[index].value = amount.toFixed(2);
             });
+            validateTable1();
+        }
+
+        function validateTable1() {
+            const ratios = Array.from(document.querySelectorAll('#table1 .ratio')).map(i => parseFloat(i.value) || 0);
+            const sum = ratios.reduce((acc, cur) => acc + cur, 0);
+            const warnEl = document.getElementById('table1-warning');
+            if (sum === 100) {
+                warnEl.textContent = '比例總和 100%。';
+                warnEl.style.color = 'green';
+            } else {
+                warnEl.textContent = `比例總和 ${sum.toFixed(2)}%，請校正。`;
+                warnEl.style.color = 'red';
+            }
+            return sum;
+        }
+
+        function normalizeRatios() {
+            const ratios = document.querySelectorAll('#table1 .ratio');
+            const sum = validateTable1();
+            if (sum === 0) return;
+            ratios.forEach(ratioInput => {
+                const value = parseFloat(ratioInput.value) || 0;
+                ratioInput.value = ((value / sum) * 100).toFixed(2);
+            });
+            calculateTable1();
         }
 
         // 表格二：計算佔比
@@ -185,11 +214,22 @@
                 total += parseFloat(amountInput.value) || 0;
             });
             totalInput.value = total.toFixed(2);
+            let percentageSum = 0;
             amounts.forEach((amountInput, index) => {
                 const amount = parseFloat(amountInput.value) || 0;
                 const percentage = total > 0 ? (amount / total) * 100 : 0;
                 percentages[index].value = percentage.toFixed(2);
+                percentageSum += percentage;
             });
+
+            const infoEl = document.getElementById('table2-info');
+            if (total > 0) {
+                infoEl.textContent = `總額 ${total.toFixed(2)}，佔比總和 ${percentageSum.toFixed(2)}%。`;
+                infoEl.style.color = Math.abs(percentageSum - 100) < 0.01 ? 'green' : 'red';
+            } else {
+                infoEl.textContent = '請輸入細項金額以計算總額與佔比。';
+                infoEl.style.color = 'red';
+            }
         }
 
         // 事件監聽
