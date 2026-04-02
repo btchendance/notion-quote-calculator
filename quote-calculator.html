@@ -15,6 +15,12 @@
 </head>
 <body>
     <h1>報價統計表格</h1>
+    
+    <div style="margin-bottom: 20px; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+        <label for="projectName">專案名稱：</label>
+        <input type="text" id="projectName" placeholder="輸入專案名稱（用於保存數據）" style="padding: 5px; margin-left: 10px; width: 300px;">
+        <button id="clearBtn" style="margin-left: 10px;">清空此專案數據</button>
+    </div>
 
     <h2>按比例計算</h2>
     <table id="table1">
@@ -166,6 +172,80 @@
     <div id="table2-info" style="color: green; margin-bottom: 10px;"></div>
 
     <script>
+        // localStorage 相關函數
+        function getStorageKey() {
+            const projectName = document.getElementById('projectName').value.trim();
+            return projectName ? `projectData_${projectName}` : null;
+        }
+
+        function saveData() {
+            const key = getStorageKey();
+            if (!key) return;
+
+            const ratios = Array.from(document.querySelectorAll('#table1 .ratio')).map(i => i.value);
+            const total1 = document.getElementById('total1').value;
+            const amounts2 = Array.from(document.querySelectorAll('#table2 .amount2')).map(i => i.value);
+
+            const data = {
+                ratios: ratios,
+                total1: total1,
+                amounts2: amounts2
+            };
+
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function loadData() {
+            const key = getStorageKey();
+            if (!key) return;
+
+            const data = localStorage.getItem(key);
+            if (!data) return;
+
+            try {
+                const parsed = JSON.parse(data);
+                
+                // 恢復表格一的比例和總額
+                if (parsed.ratios) {
+                    document.querySelectorAll('#table1 .ratio').forEach((input, index) => {
+                        if (parsed.ratios[index] !== undefined) {
+                            input.value = parsed.ratios[index];
+                        }
+                    });
+                }
+                if (parsed.total1) {
+                    document.getElementById('total1').value = parsed.total1;
+                }
+
+                // 恢復表格二的金額
+                if (parsed.amounts2) {
+                    document.querySelectorAll('#table2 .amount2').forEach((input, index) => {
+                        if (parsed.amounts2[index] !== undefined) {
+                            input.value = parsed.amounts2[index];
+                        }
+                    });
+                }
+
+                // 重新計算
+                calculateTable1();
+                calculateTable2();
+            } catch (e) {
+                console.error('Failed to load data:', e);
+            }
+        }
+
+        function clearData() {
+            const key = getStorageKey();
+            if (!key) {
+                alert('請先輸入專案名稱');
+                return;
+            }
+            if (confirm(`確認清空「${document.getElementById('projectName').value}」的所有數據嗎？`)) {
+                localStorage.removeItem(key);
+                location.reload();
+            }
+        }
+
         // 表格一：按比例計算金額
         function calculateTable1() {
             const total = parseFloat(document.getElementById('total1').value) || 0;
@@ -233,14 +313,40 @@
         }
 
         // 事件監聽
-        document.getElementById('total1').addEventListener('input', calculateTable1);
-        document.querySelectorAll('#table1 .ratio').forEach(input => input.addEventListener('input', calculateTable1));
+        document.getElementById('projectName').addEventListener('change', () => {
+            loadData();
+        });
 
-        document.querySelectorAll('#table2 .amount2').forEach(input => input.addEventListener('input', calculateTable2));
+        document.getElementById('total1').addEventListener('input', () => {
+            calculateTable1();
+            saveData();
+        });
+        
+        document.querySelectorAll('#table1 .ratio').forEach(input => {
+            input.addEventListener('input', () => {
+                calculateTable1();
+                saveData();
+            });
+        });
 
-        // 初始化計算
+        document.querySelectorAll('#table2 .amount2').forEach(input => {
+            input.addEventListener('input', () => {
+                calculateTable2();
+                saveData();
+            });
+        });
+
+        document.getElementById('normalizeBtn').addEventListener('click', () => {
+            normalizeRatios();
+            saveData();
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', clearData);
+
+        // 初始化計算和載入數據
         calculateTable1();
         calculateTable2();
+        loadData();
     </script>
 </body>
 </html>
