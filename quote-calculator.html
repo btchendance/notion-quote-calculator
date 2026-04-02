@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>報價統計表格</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        input { width: 100%; box-sizing: border-box; }
+        .total { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>報價統計表格</h1>
+
+    <h2>表格一：按比例計算金額</h2>
+    <table id="table1">
+        <thead>
+            <tr>
+                <th>細項</th>
+                <th>比例 (%)</th>
+                <th>金額</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>項目A</td>
+                <td><input type="number" class="ratio" value="30"></td>
+                <td><input type="number" class="amount" readonly></td>
+            </tr>
+            <tr>
+                <td>項目B</td>
+                <td><input type="number" class="ratio" value="40"></td>
+                <td><input type="number" class="amount" readonly></td>
+            </tr>
+            <tr>
+                <td>項目C</td>
+                <td><input type="number" class="ratio" value="30"></td>
+                <td><input type="number" class="amount" readonly></td>
+            </tr>
+            <tr class="total">
+                <td>總額</td>
+                <td><input type="number" id="total1" value="1000"></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>表格二：計算佔比</h2>
+    <table id="table2">
+        <thead>
+            <tr>
+                <th>細項</th>
+                <th>金額</th>
+                <th>佔比 (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>項目A</td>
+                <td><input type="number" class="amount2" value="300"></td>
+                <td><input type="number" class="percentage" readonly></td>
+            </tr>
+            <tr>
+                <td>項目B</td>
+                <td><input type="number" class="amount2" value="400"></td>
+                <td><input type="number" class="percentage" readonly></td>
+            </tr>
+            <tr>
+                <td>項目C</td>
+                <td><input type="number" class="amount2" value="300"></td>
+                <td><input type="number" class="percentage" readonly></td>
+            </tr>
+            <tr class="total">
+                <td>總額</td>
+                <td><input type="number" id="total2" value="1000" readonly></td>
+                <td>100</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        // 表格一：按比例計算金額
+        function calculateTable1() {
+            const total = parseFloat(document.getElementById('total1').value) || 0;
+            const ratios = document.querySelectorAll('#table1 .ratio');
+            const amounts = document.querySelectorAll('#table1 .amount');
+            ratios.forEach((ratioInput, index) => {
+                const ratio = parseFloat(ratioInput.value) || 0;
+                const amount = (total * ratio) / 100;
+                amounts[index].value = amount.toFixed(2);
+            });
+        }
+
+        // 表格二：計算佔比
+        function calculateTable2() {
+            const amounts = document.querySelectorAll('#table2 .amount2');
+            const percentages = document.querySelectorAll('#table2 .percentage');
+            const totalInput = document.getElementById('total2');
+            let total = 0;
+            amounts.forEach(amountInput => {
+                total += parseFloat(amountInput.value) || 0;
+            });
+            totalInput.value = total.toFixed(2);
+            amounts.forEach((amountInput, index) => {
+                const amount = parseFloat(amountInput.value) || 0;
+                const percentage = total > 0 ? (amount / total) * 100 : 0;
+                percentages[index].value = percentage.toFixed(2);
+            });
+        }
+
+        // 事件監聽
+        document.getElementById('total1').addEventListener('input', calculateTable1);
+        document.querySelectorAll('#table1 .ratio').forEach(input => input.addEventListener('input', calculateTable1));
+
+        document.querySelectorAll('#table2 .amount2').forEach(input => input.addEventListener('input', calculateTable2));
+
+        // 初始化計算
+        calculateTable1();
+        calculateTable2();
+    </script>
+</body>
+</html>
